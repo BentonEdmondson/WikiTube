@@ -2,6 +2,7 @@
 var wiki = require('wikijs').default;
 var getTopicSentences = require('./topic-sentences-finder');
 var curateContent = require('./content-curator');
+var compileVideo = require('./video-compiler');
 
 (generateVideo = async subject => {
     const MIN_SLIDES_IN_VIDEO = 4;
@@ -13,9 +14,11 @@ var curateContent = require('./content-curator');
     var images = (await page.rawImages()).filter(image => image.title.toLowerCase().endsWith('.jpg'));
     if (images.length < MIN_SLIDES_IN_VIDEO) throw new Error(`There are too few images.`);
 
-    var videoContent = curateContent(topicSentences, images);
+    var videoSlides = curateContent(topicSentences, images);
 
-    console.log(videoContent);
+    console.log(videoSlides);
 
-})('Wisconsin');
+    await compileVideo(videoSlides);
+
+})('Hitler');
 

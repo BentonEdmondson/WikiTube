@@ -17,7 +17,10 @@
   },
   "homepage": "https://github.com/BentonEdmondson/WikiTube#readme",
   "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.0.20",
+    "fluent-ffmpeg": "^2.1.2",
     "keyword-extractor": "0.0.19",
+    "needle": "^2.5.0",
     "nlcst-to-string": "^2.0.4",
     "parse-english": "^4.1.3",
     "string-similarity": "^4.0.1",
