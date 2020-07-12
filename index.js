@@ -18,7 +18,7 @@ var compileVideo = require('./video-compiler');
 
     console.log(videoSlides);
 
-    await compileVideo(videoSlides);
+    await compileVideo(videoSlides, `./testDir`);
 
-})('Hitler');
+})('Albert Einstein');
 

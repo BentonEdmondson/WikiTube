@@ -14,7 +14,7 @@ module.exports = (topicSentences, images) => {
         ).bestMatchIndex;
         curatedContent.push({
             subtitle: topicSentence,
-            image: images[indexOfBestImage].imageinfo[0].url
+            imageUrl: images[indexOfBestImage].imageinfo[0].url
         });
         images.splice(indexOfBestImage, 1);
     }

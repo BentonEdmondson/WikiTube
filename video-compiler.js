@@ -1,31 +1,47 @@
-var ffmpeg = require('fluent-ffmpeg');
-var ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
-ffmpeg.setFfmpegPath(ffmpegPath);
-var needle = require('needle');
-var fs = require('fs');
-const WORKING_DIR = './testDir'; // eventually this will automatically check for what the next dir should be
+var download = require('image-downloader');
+var editly = require('editly');
+var fs = require('fs').promises;
 
-module.exports = async videoSlides => {
-    var jpgToMp4Promises = [];
-    videoSlides.forEach((slide, i) => {
-        jpgToMp4Promises.push(saveJpgAsMp4WithSubtitles(slide, `${WORKING_DIR}/${i}.mp4`));
+module.exports = async (videoSlides, dir) => {
+    await Promise.all(videoSlides.map((videoSlide, i) => {
+        videoSlide.imagePath = `${dir}/image${i}.jpg`;
+        return download.image({ url: videoSlide.imageUrl, dest: videoSlide.imagePath });
+    }));
+
+    await editly({
+        outPath: `${dir}/video.mp4`,
+        width: 1920,
+        height: 1080,
+        fps: 60,
+        defaults: {
+            duration: 15, // TODO: make the duration depend on the subtitle length
+            transition: {
+                duration: 0.5,
+                name: 'fade'
+            }
+        },
+        audioFilePath: undefined,
+        clips: videoSlides.map(({ imagePath, subtitle }) => ({
+            layers: [
+                {
+                    type: 'image',
+                    path: imagePath,
+                    zoomDirection: Math.random() < 0.5 ? 'in' : 'out',
+                    zoomAmount: 0.1 // TODO: choose zoom amount
+                },
+                {
+                    type: 'subtitle',
+                    fontPath: 'font.ttf',
+                    text: subtitle,
+                    textColor: '#ffffff'
+                }
+            ]
+        })),
+
+        enableFfmpegLog: false,
+        verbose: false,
+        fast: false
     });
-    await Promise.all(jpgToMp4Promises);
+
+    await videoSlides.map(({ imagePath }) => fs.unlink(imagePath));
 }
-
-var saveJpgAsMp4WithSubtitles = async ({ subtitle, image: jpgUrl }, mp4Path) => new Promise((resolve, reject) => {
-    var stream = needle.get(jpgUrl);
-
-    ffmpeg(stream)
-        .inputFps(0.07) // https://github.com/fluent-ffmpeg/node-fluent-ffmpeg/issues/593#issuecomment-258465774
-        .loop(5)
-        .fps(25)
-        .size('1920x1080')
-        .autopad()
-        .videoFilter('subtitles=subtitles.ass')
-        .outputOptions('-pix_fmt yuv420p')
-        .on('start', console.log)
-        .on('error', reject)
-        .on('end', resolve)
-        .save(mp4Path)
-});
